@@ -1,2 +1,5 @@
-python-telegram-bot==22
-requests
+pyTelegramBotAPI==4.26.0
+validators==0.34.0
+requests==2.32.3
+pyshorteners==1.0.1
+schedule==1.2.2
