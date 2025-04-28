@@ -10,7 +10,12 @@ API_KEY = 'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    bot.reply_to(message, "👋 Hi! Send me any link, and I'll shorten it for you.")
+    bot.reply_to(message, "Hello  Genius 🤗
+    🌌 Welcome to a world where links are limitless!  
+Drop your URL — I’ll turn it into something extraordinary.  
+For full control and rewards, board your journey at https://shortner.noirsane.com 🚀  
+_Built with cosmic passion and ❤️ by Saptarshi Singh._
+")
 
 @bot.message_handler(func=lambda message: True)
 def shorten_url(message):
