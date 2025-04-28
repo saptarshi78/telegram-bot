@@ -6,7 +6,7 @@ import validators
 bot = telebot.TeleBot('7670050222:AAEBCHD07v-Bauov9zjjSAoJucqHWFYSEa8')
 
 # Replace 'YOUR_API_KEY' with your actual API key from NoirSane URL shortener
-API_KEY = '3258415006603e646926420840c3469a68c377a1'
+API_KEY = 'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
