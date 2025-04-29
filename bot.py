@@ -1,39 +1,45 @@
 import telebot
 import requests
 import validators
+import re
 
-# Replace 'YOUR_BOT_TOKEN' with your actual Telegram bot token
+# Your actual bot token and API key
 bot = telebot.TeleBot('7670050222:AAEBCHD07v-Bauov9zjjSAoJucqHWFYSEa8')
+API_KEY = '3258415006603e646926420840c3469a68c377a1'
 
-# Replace 'YOUR_API_KEY' with your actual API key from NoirSane URL shortener
-API_KEY = 'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
+def find_and_shorten_links(text):
+    url_pattern = r'(https?://\S+)'
+    urls = re.findall(url_pattern, text)
+    for url in urls:
+        if validators.url(url):
+            try:
+                api_url = f"https://shortner.noirsane.com/api?api={API_KEY}&url={url}&format=text"
+                response = requests.get(api_url)
+                short_url = response.text.strip()
+                text = text.replace(url, short_url)
+            except Exception as e:
+                print(f"Error shortening {url}: {e}")
+    return text
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    bot.reply_to(message, "Hello  Genius 🤗  Welcome to a world where links are limitless!Drop your URL — I’ll turn it into something extraordinary.For full control and rewards, board your journey at https://shortner.noirsane.com 🚀_Built with cosmic passion and ❤️ by Saptarshi Singh._")
+    bot.reply_to(message,
+        "🌟 Welcome to the Premium NoirSane Link Shortener Bot! 🌐\n\n"
+        "📎 Just send any text or photo with a link, and I’ll convert it into a short branded URL instantly.\n"
+        "💰 Want to shorten your own links and earn? Login now: https://shortner.noirsane.com\n\n"
+        "🚀 Crafted with ❤️ by Saptarshi Singh"
+    )
 
-@bot.message_handler(func=lambda message: True)
-def shorten_url(message):
-    url = message.text.strip()
+@bot.message_handler(content_types=['text'])
+def handle_text(message):
+    updated_text = find_and_shorten_links(message.text.strip())
+    bot.reply_to(message, updated_text)
 
-    # Validate the URL
-    if not validators.url(url):
-        bot.reply_to(message, "❌ Please send a valid URL.")
-        return
+@bot.message_handler(content_types=['photo'])
+def handle_photo(message):
+    caption = message.caption if message.caption else ""
+    updated_caption = find_and_shorten_links(caption)
+    bot.send_photo(chat_id=message.chat.id, photo=message.photo[-1].file_id, caption=updated_caption)
 
-    try:
-        # Shorten the URL using NoirSane API
-        api_url = f"https://shortner.noirsane.com/api?api={API_KEY}&url={url}&format=text"
-        response = requests.get(api_url)
-        short_url = response.text.strip()
-
-        if short_url:
-            bot.reply_to(message, f"🔗 Here is your shortened link: {short_url}")
-        else:
-            bot.reply_to(message, "❌ Error shortening the link. Please check your URL.")
-    except Exception as e:
-        bot.reply_to(message, "⚠️ An error occurred while shortening the URL.")
-        print(f"Error: {e}")
-
-# Start the bot
+# Start polling
 bot.polling()
