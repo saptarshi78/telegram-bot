@@ -4,74 +4,50 @@ import validators
 import re
 import time
 import threading
-import random
 
 bot = telebot.TeleBot('8166571880:AAEZ7__xJzYoOR0zTr3n8ZbTWUYhDYfGezY')
 API_KEY = 'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
+
 DEFAULT_FOOTER = "\n\nJoin this channel for more videos 😚✅👇\nhttps://t.me/noirsanebackup"
+last_seen = {}  # chat_id: timestamp
 
-last_seen = {}
-
-romantic_questions = [
-    "Do you believe in love at first sight or should I walk by again Raj? 😍",
-    "What's your idea of a perfect date night Raj? 🌟",
-    "Raj...If we were characters in a romantic movie, what would our story be? 🎓💕",
-    "Raj...What’s the most romantic thing someone has ever done for you? 😘",
-    "Raj...Would you rather watch a sunset together or stargaze all night? 🌇"
-]
-
-# ✅ Retry until link shortens successfully
-def safe_shorten_infinite(url):
-    while True:
-        try:
-            response = requests.get(
-                f"https://shortner.noirsane.com/api?api={API_KEY}&url={url}&format=text",
-                timeout=6
-            )
-            if response.ok and response.text.strip().startswith("http"):
-                return response.text.strip()
-        except Exception as e:
-            print(f"Retrying shortening {url} after error: {e}")
-        time.sleep(2)
-
-# ✅ Process all links with retries
-def find_and_shorten_links(text):
-    if not text:
-        return ""
-
-    url_pattern = r'(https?://[^\s]+)'
-    urls = list(set(re.findall(url_pattern, text)))
-    if not urls:
-        return text
-
-    shortened_map = {}
-    threads = []
-
-    def shorten_and_store(u):
-        shortened_map[u] = safe_shorten_infinite(u)
-
-    for url in urls:
-        t = threading.Thread(target=shorten_and_store, args=(url,))
-        threads.append(t)
-        t.start()
-
-    for t in threads:
-        t.join()
-
-    for original, short in shortened_map.items():
-        text = text.replace(original, short)
-
-    return text + DEFAULT_FOOTER
-
+# Welcome message
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     bot.reply_to(message,
-        "🌟 Welcome to the Premium Link Shortener Bot! 🌐\n\n"
+        "🌟 Wwwelcome to the Premium Link Shortener Bot! 🌐\n\n"
         "📌 Just send any text, photo, or video with a link — I’ll shorten it instantly.\n"
         "💰 Login to earn: https://shortner.noirsane.com\n\n"
         "🚀 Crafted with ❤️ by Saptarshi Singh"
     )
     last_seen[message.chat.id] = time.time()
+
+def find_and_shorten_links(text):
+    if not text:
+        return ""
+    url_pattern = r'(https?://\S+)'
+    urls = re.findall(url_pattern, text)
+    unique_urls = list(set(urls))
+    
+    for url in unique_urls:
+        if validators.url(url):
+            while True:  # Infinite loop until link is successfully shortened
+                try:
+                    response = requests.get(
+                        f"https://shortner.noirsane.com/api?api={API_KEY}&url={url}&format=text",
+                        timeout=10
+                    )
+                    if response.status_code == 200:
+                        short_url = response.text.strip()
+                        text = text.replace(url, short_url)
+                        break  # Link shortened successfully, exit loop
+                    else:
+                        time.sleep(2)  # Wait before retrying if response is not successful
+                except Exception as e:
+                    print(f"Error shortening {url}: {e}")
+                    time.sleep(2)  # Wait before retrying in case of an exception
+    return text + DEFAULT_FOOTER if unique_urls else text
+
 
 @bot.message_handler(content_types=['text'])
 def handle_text(message):
@@ -115,19 +91,5 @@ def handle_bulk(message):
     except Exception as e:
         print(f"Error in bulk processing: {e}")
 
-def romance_engagement_loop():
-    while True:
-        current_time = time.time()
-        for chat_id, last_time in list(last_seen.items()):
-            if current_time - last_time > 120:
-                question = random.choice(romantic_questions)
-                try:
-                    bot.send_message(chat_id, question)
-                    last_seen[chat_id] = current_time
-                except:
-                    pass
-        time.sleep(60)
-
-threading.Thread(target=romance_engagement_loop, daemon=True).start()
-
+# Run the bot
 bot.infinity_polling(timeout=10, long_polling_timeout=5)
