@@ -4,6 +4,7 @@ import validators
 import re
 import time
 import threading
+import random
 
 bot = telebot.TeleBot('8166571880:AAEZ7__xJzYoOR0zTr3n8ZbTWUYhDYfGezY')
 API_KEY = 'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
@@ -19,24 +20,45 @@ romantic_questions = [
     "Raj...Would you rather watch a sunset together or stargaze all night? 🌇"
 ]
 
+shorten_cache = {}  # Cache to store already-shortened URLs
+
 
 def find_and_shorten_links(text):
     if not text:
         return ""
+
     url_pattern = r'(https?://\S+)'
     urls = re.findall(url_pattern, text)
     unique_urls = list(set(urls))
+
     for url in unique_urls:
-        if validators.url(url):
-            try:
-                response = requests.get(
-                    f"https://shortner.noirsane.com/api?api={API_KEY}&url={url}&format=text",
-                    timeout=5
-                )
-                short_url = response.text.strip()
-                text = text.replace(url, short_url)
-            except Exception as e:
-                print(f"Error shortening {url}: {e}")
+        if not validators.url(url):
+            continue
+
+        if url in shorten_cache:
+            short_url = shorten_cache[url]
+        else:
+            short_url = None
+            for attempt in range(2):  # Retry twice
+                try:
+                    time.sleep(0.3)  # Delay between API calls
+                    response = requests.get(
+                        f"https://shortner.noirsane.com/api?api={API_KEY}&url={url}&format=text",
+                        timeout=10
+                    )
+                    if response.ok:
+                        short_url = response.text.strip()
+                        shorten_cache[url] = short_url
+                        break
+                except Exception as e:
+                    print(f"[Retry {attempt+1}] Error shortening {url}: {e}")
+                    time.sleep(1)
+
+        if short_url:
+            text = text.replace(url, short_url)
+        else:
+            print(f"⚠️ Could not shorten: {url}")
+
     return text + DEFAULT_FOOTER if unique_urls else text
 
 
@@ -108,7 +130,6 @@ def romance_engagement_loop():
 
 
 # Start romantic engagement in background
-import random
 threading.Thread(target=romance_engagement_loop, daemon=True).start()
 
 # Run the bot
