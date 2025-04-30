@@ -4,8 +4,8 @@ import validators
 import re
 
 # Your actual bot token and API key
-bot = telebot.TeleBot('7670050222:AAEBCHD07v-Bauov9zjjSAoJucqHWFYSEa8')
-API_KEY = 'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
+bot = telebot.TeleBot('BOT_TOKEN')
+API_KEY = 'API_TOKEN'
 
 def find_and_shorten_links(text):
     url_pattern = r'(https?://\S+)'
