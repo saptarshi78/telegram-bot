@@ -3,9 +3,11 @@ import requests
 import validators
 import re
 
-# Your actual bot token and API key
+# Replace with your bot token and API key
 bot = telebot.TeleBot('8166571880:AAEZ7__xJzYoOR0zTr3n8ZbTWUYhDYfGezY')
 API_KEY = 'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
+
+DEFAULT_FOOTER = "\n\nJoin this channel for more videos 😚✅👇\nhttps://t.me/noirsanebackup"
 
 def find_and_shorten_links(text):
     url_pattern = r'(https?://\S+)'
@@ -19,13 +21,13 @@ def find_and_shorten_links(text):
                 text = text.replace(url, short_url)
             except Exception as e:
                 print(f"Error shortening {url}: {e}")
-    return text
+    return text + DEFAULT_FOOTER
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     bot.reply_to(message,
         "🌟 Welcome to the Premium Link Shortener Bot! 🌐\n\n"
-        "📎 Just send any text or photo with a link, and I’ll convert it into a short branded URL instantly.\n"
+        "📎 Just send any text, photo, or video with a link, and I’ll convert it into a short branded URL instantly.\n"
         "💰 Want to shorten your own links and earn? Login now: https://shortner.noirsane.com\n\n"
         "🚀 Crafted with ❤️ by Saptarshi Singh"
     )
@@ -41,5 +43,11 @@ def handle_photo(message):
     updated_caption = find_and_shorten_links(caption)
     bot.send_photo(chat_id=message.chat.id, photo=message.photo[-1].file_id, caption=updated_caption)
 
-# Start polling
+@bot.message_handler(content_types=['video'])
+def handle_video(message):
+    caption = message.caption if message.caption else ""
+    updated_caption = find_and_shorten_links(caption)
+    bot.send_video(chat_id=message.chat.id, video=message.video.file_id, caption=updated_caption)
+
+# Start the bot
 bot.polling()
