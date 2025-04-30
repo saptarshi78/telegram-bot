@@ -92,4 +92,4 @@ def handle_bulk(message):
         print(f"Error in bulk processing: {e}")
 
 # Run the bot
-bot.infinity_polling(timeout=10, long_polling_timeout=5)
+bot.infinity_polling(timeout=60, long_polling_timeout=60)
