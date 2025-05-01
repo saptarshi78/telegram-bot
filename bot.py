@@ -32,7 +32,8 @@ def shorten_with_retry(url):
                     return short_url
         except Exception as e:
             print(f"Retrying {url} due to: {e}")
-        time.sleep(2)
+        # Retry immediately (no delay)
+        continue
 
 # Find and shorten all URLs in a message
 def find_and_shorten_links(text):
@@ -45,7 +46,6 @@ def find_and_shorten_links(text):
         if validators.url(url):
             short_url = shorten_with_retry(url)
             text = text.replace(url, short_url)
-            time.sleep(2)  # Delay per link to prevent API overload
     return text + DEFAULT_FOOTER if unique_urls else text
 
 # Welcome message
@@ -87,7 +87,7 @@ def process_queue():
             print(f"Error handling message: {e}")
         finally:
             message_queue.task_done()
-        time.sleep(2)  # Delay per message to avoid flooding the API
+        # No delay between messages
 
 # Webhook handler for Render Flask
 @app.route('/', methods=['GET'])
