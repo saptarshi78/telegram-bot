@@ -47,7 +47,7 @@ def find_and_shorten_links(text):
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     bot.reply_to(message,
-        "🌟 W to the Premium Link Shortener Bot! 🌐\n\n"
+        "🌟 Welcome to the Premium Link Shortener Bot! 🌐\n\n"
         "📌 Just send any text, photo, or video with a link — I’ll shorten it instantly.\n"
         "💰 Login to earn: https://shortner.noirsane.com\n\n"
         "🚀 Crafted with ❤️ by Saptarshi Singh"
