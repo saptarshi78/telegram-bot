@@ -13,7 +13,10 @@ def find_and_shorten_links(text):
     if not text:
         return ""
 
-    # Remove any existing footer
+    # Remove any Telegram links
+    text = re.sub(r"https?://t\.me/\S+", "", text)
+
+    # Remove old footer if it exists
     text = re.sub(r"\n*Join this channel for more videos.*?(https?://t\.me/\S+)?", "", text, flags=re.IGNORECASE)
 
     url_pattern = r'(https?://\S+)'
@@ -41,7 +44,7 @@ def find_and_shorten_links(text):
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     bot.reply_to(message,
-        "🌟 Welcome to the Premium Link Shortener Bot using python! 🌐\n\n"
+        "🌟 Welcome to the Premium Link Shortener Bot using Python! 🌐\n\n"
         "📎 Just send any text, photo, or video with a link — I’ll shorten it instantly.\n"
         "💰 Login to earn: https://shortner.noirsane.com\n\n"
         "🚀 Crafted with ❤️ by Saptarshi Singh"
@@ -70,7 +73,6 @@ def handle_document(message):
     updated = find_and_shorten_links(caption)
     bot.send_document(message.chat.id, message.document.file_id, caption=updated)
 
-# Fallback handler
 @bot.message_handler(func=lambda message: True)
 def handle_bulk(message):
     try:
@@ -86,5 +88,4 @@ def handle_bulk(message):
     except Exception as e:
         print(f"Error in bulk processing: {e}")
 
-# Run the bot
 bot.infinity_polling()
