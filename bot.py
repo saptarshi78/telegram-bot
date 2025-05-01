@@ -97,7 +97,7 @@ def home():
     return 'Bot is running!'
 
 def start_bot():
-    bot.infinity_polling(timeout=60, long_polling_timeout=60)
+    bot.infinity_polling()
 
 # Start the bot in a thread so Flask can run
 if __name__ == '__main__':
