@@ -4,6 +4,7 @@ import validators
 import re
 import time
 import threading
+from queue import Queue
 from flask import Flask, request
 
 # Flask app for Render
@@ -13,6 +14,9 @@ app = Flask(__name__)
 bot = telebot.TeleBot('8166571880:AAEZ7__xJzYoOR0zTr3n8ZbTWUYhDYfGezY')
 API_KEY = 'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
 DEFAULT_FOOTER = "\n\nJoin this channel for more videos 😚✅👇\nhttps://t.me/noirsanebackup"
+
+# Create a queue to store incoming messages
+message_queue = Queue()
 
 # Infinite retry logic to shorten a URL
 def shorten_with_retry(url):
@@ -41,55 +45,49 @@ def find_and_shorten_links(text):
         if validators.url(url):
             short_url = shorten_with_retry(url)
             text = text.replace(url, short_url)
+            time.sleep(2)  # Delay per link to prevent API overload
     return text + DEFAULT_FOOTER if unique_urls else text
 
 # Welcome message
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     bot.reply_to(message,
-        "🌟 Welcom to the Premium Link Shortener Bot! 🌐\n\n"
+        "🌟 Welcome to the Premium Link Shortener Bot! 🌐\n\n"
         "📌 Just send any text, photo, or video with a link — I’ll shorten it instantly.\n"
         "💰 Login to earn: https://shortner.noirsane.com\n\n"
         "🚀 Crafted with ❤️ by Saptarshi Singh"
     )
 
-# Text handler
-@bot.message_handler(content_types=['text'])
-def handle_text(message):
-    updated = find_and_shorten_links(message.text.strip())
-    bot.reply_to(message, updated)
+# Handlers add messages to queue
+@bot.message_handler(func=lambda message: True, content_types=['text', 'photo', 'video', 'document'])
+def queue_message(message):
+    message_queue.put(message)
 
-# Media handlers
-@bot.message_handler(content_types=['photo'])
-def handle_photo(message):
-    caption = message.caption if message.caption else ""
-    updated = find_and_shorten_links(caption)
-    bot.send_photo(message.chat.id, message.photo[-1].file_id, caption=updated)
-
-@bot.message_handler(content_types=['video'])
-def handle_video(message):
-    caption = message.caption if message.caption else ""
-    updated = find_and_shorten_links(caption)
-    bot.send_video(message.chat.id, message.video.file_id, caption=updated)
-
-@bot.message_handler(content_types=['document'])
-def handle_document(message):
-    caption = message.caption if message.caption else ""
-    updated = find_and_shorten_links(caption)
-    bot.send_document(message.chat.id, message.document.file_id, caption=updated)
-
-# Bulk fallback for anything not matched above
-@bot.message_handler(func=lambda message: True)
-def handle_bulk(message):
-    time.sleep(0.3)
-    if message.text:
-        handle_text(message)
-    elif message.photo:
-        handle_photo(message)
-    elif message.video:
-        handle_video(message)
-    elif message.document:
-        handle_document(message)
+# Worker thread to process messages one-by-one
+def process_queue():
+    while True:
+        message = message_queue.get()
+        try:
+            if message.text:
+                updated = find_and_shorten_links(message.text.strip())
+                bot.reply_to(message, updated)
+            elif message.photo:
+                caption = message.caption if message.caption else ""
+                updated = find_and_shorten_links(caption)
+                bot.send_photo(message.chat.id, message.photo[-1].file_id, caption=updated)
+            elif message.video:
+                caption = message.caption if message.caption else ""
+                updated = find_and_shorten_links(caption)
+                bot.send_video(message.chat.id, message.video.file_id, caption=updated)
+            elif message.document:
+                caption = message.caption if message.caption else ""
+                updated = find_and_shorten_links(caption)
+                bot.send_document(message.chat.id, message.document.file_id, caption=updated)
+        except Exception as e:
+            print(f"Error handling message: {e}")
+        finally:
+            message_queue.task_done()
+        time.sleep(2)  # Delay per message to avoid flooding the API
 
 # Webhook handler for Render Flask
 @app.route('/', methods=['GET'])
@@ -99,7 +97,13 @@ def home():
 def start_bot():
     bot.infinity_polling()
 
-# Start the bot in a thread so Flask can run
+# Start everything
 if __name__ == '__main__':
+    # Start queue processor
+    threading.Thread(target=process_queue, daemon=True).start()
+
+    # Start the bot in another thread
     threading.Thread(target=start_bot).start()
+
+    # Start Flask server
     app.run(host='0.0.0.0', port=10000)
