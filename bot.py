@@ -7,7 +7,8 @@ import time
 bot = telebot.TeleBot('8166571880:AAH59oE0qwi00nIKJaau33bPxmMlV_4eEZY')
 API_KEY = 'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
 
-DEFAULT_FOOTER = "\n\nJoin this channel for more videos 😚✅👇\nhttps://t.me/noirsanebackup"
+DEFAULT_FOOTER = "\n\nJoin this channel for more 18+ videos 😚✅👇\nhttps://t.me/+Rqe3fVJ_QBthNjFl\n\nFor Latest Movies & Web Series Click Here 👇\n https://t.me/+OF7Yj4-heCVlNTFl"
+
 
 def find_and_shorten_links(text):
     if not text:
