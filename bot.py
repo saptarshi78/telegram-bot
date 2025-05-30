@@ -4,30 +4,41 @@ import validators
 import re
 import time
 
+# Telegram Bot Token
 bot = telebot.TeleBot('8166571880:AAH59oE0qwi00nIKJaau33bPxmMlV_4eEZY')
+
+# Noirsane Shortener API Key
 API_KEY = 'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
-DEFAULT_HEADER ="https://t.me/+zNbzsB_y25AwNDJl \n\n👆👆🔞Join This backup channel🔞 👆\n\n 🔗⚔━━━━━━━━━━━━━━━━━⚔"
-DEFAULT_FOOTER = "⚔━━━━━━━━━━━━━━━━━⚔Backup - \n\n Join this chinnal guys 🔞🔞👇👇 \n\n https://t.me/+Rqe3fVJ_QBthNjFl \n\n ⚔━━━━━━━━━━━━━━━━━⚔Backup - \n\n Join this 🎥MOVIE🎥 channel 👇 👇👇 \n\n https://t.me/+Rqe3fVJ_QBthNjFl "
 
+# Custom header and footer
+DEFAULT_HEADER = "\n\n 🔞 https://t.me/+zNbzsB_y25AwNDJl 🔞 \n 👆🔞Join This backup channel🔞 👆 \n 🔗⚔━━━━━━━━━━━━━━━━━⚔"
+DEFAULT_FOOTER = "\n ⚔━━━━━━━━━━━━━━━━━⚔ \n Backup - \n Join this chinnal guys 🔞🔞👇👇 \n https://t.me/+Rqe3fVJ_QBthNjFl \n \n Join this 🎥MOVIE🎥 channel  👇👇 \n https://t.me/+Tixf7zhZ6Ok2YzY1 \n\n 👉🔗 HOW TO DOWNLOAD🔗👈 \n https://t.me/publicc_778/56"
 
-def find_and_shorten_links(text):
+# Clean up forwarded messages
+def clean_text(text):
     if not text:
         return ""
 
-    # Remove any Telegram links
-    text = re.sub(r"https?://t\.me/\S+", "", text)
+    # Remove Telegram links and joining lines
+    text = re.sub(r'https?://t\.me/\S+', '', text)
+    text = re.sub(r'(?i)join\s+this\s+channel.*', '', text)
+    text = re.sub(r'(?i)Join.*👇.*', '', text)
+    text = re.sub(r'@\w+', '', text)
+    text = re.sub(r'\n{2,}', '\n', text)
 
-    # Remove any @username mentions
-    text = re.sub(r"@", "", text)
+    return text.strip()
 
-    # Remove old footer if it exists
-    text = re.sub(r"\n*Join this channel for more videos.*?(https?://t\.me/\S+)?", "", text, flags=re.IGNORECASE)
+# Find URLs and shorten them
+def find_and_shorten_links(text):
+    if not text:
+        return DEFAULT_HEADER + "\n" + DEFAULT_FOOTER
+
+    text = clean_text(text)
 
     url_pattern = r'(https?://\S+)'
-    urls = re.findall(url_pattern, text)
-    unique_urls = list(set(urls))
+    urls = list(set(re.findall(url_pattern, text)))
 
-    for url in unique_urls:
+    for url in urls:
         if validators.url(url):
             try:
                 response = requests.get(
@@ -38,20 +49,21 @@ def find_and_shorten_links(text):
                     short_url = response.text.strip()
                     text = text.replace(url, short_url)
                 else:
-                    print(f"Invalid or failed shortening for: {url}")
+                    print(f"Failed to shorten: {url}")
             except Exception as e:
                 print(f"Error shortening {url}: {e}")
             time.sleep(0.1)
 
-    return text.strip() + DEFAULT_FOOTER if unique_urls else text.strip()
+    return DEFAULT_HEADER + "\n" + text + DEFAULT_FOOTER
 
+# Handlers
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     bot.reply_to(message,
         "🌟 Welcome to the Premium Link Shortener Bot! 🌐\n\n"
         "📎 Just send any text, photo, or video with a link — I’ll shorten it instantly.\n"
         "💰 Login to earn: https://shortner.noirsane.com\n\n"
-        "🚀 Crafted with ❤❤️‍🔥"
+        "🚀 Crafted with ❤️‍🔥"
     )
 
 @bot.message_handler(content_types=['text'])
@@ -92,4 +104,5 @@ def handle_bulk(message):
     except Exception as e:
         print(f"Error in bulk processing: {e}")
 
+# Start bot
 bot.infinity_polling()
