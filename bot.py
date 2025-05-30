@@ -18,7 +18,7 @@ def find_and_shorten_links(text):
     text = re.sub(r"https?://t\.me/\S+", "", text)
 
     # Remove any @username mentions
-    text = re.sub(r"@\w+", "", text)
+    text = re.sub(r"@", "", text)
 
     # Remove old footer if it exists
     text = re.sub(r"\n*Join this channel for more videos.*?(https?://t\.me/\S+)?", "", text, flags=re.IGNORECASE)
