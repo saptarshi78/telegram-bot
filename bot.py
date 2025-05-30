@@ -6,8 +6,8 @@ import time
 
 bot = telebot.TeleBot('8166571880:AAH59oE0qwi00nIKJaau33bPxmMlV_4eEZY')
 API_KEY = 'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
-
-DEFAULT_FOOTER = "\n\nJoin this channel for more 18+ videos 😚✅👇\nhttps://t.me/+Rqe3fVJ_QBthNjFl\n\nFor Latest Movies & Web Series Click Here 👇\n https://t.me/+OF7Yj4-heCVlNTFl"
+DEFAULT_HEADER ="https://t.me/+zNbzsB_y25AwNDJl \n\n👆👆🔞Join This backup channel🔞 👆\n\n 🔗⚔━━━━━━━━━━━━━━━━━⚔"
+DEFAULT_FOOTER = "⚔━━━━━━━━━━━━━━━━━⚔Backup - \n\n Join this chinnal guys 🔞🔞👇👇 \n\n https://t.me/+Rqe3fVJ_QBthNjFl \n\n ⚔━━━━━━━━━━━━━━━━━⚔Backup - \n\n Join this 🎥MOVIE🎥 channel 👇 👇👇 \n\n https://t.me/+Rqe3fVJ_QBthNjFl "
 
 
 def find_and_shorten_links(text):
@@ -16,6 +16,9 @@ def find_and_shorten_links(text):
 
     # Remove any Telegram links
     text = re.sub(r"https?://t\.me/\S+", "", text)
+
+    # Remove any @username mentions
+    text = re.sub(r"@\w+", "", text)
 
     # Remove old footer if it exists
     text = re.sub(r"\n*Join this channel for more videos.*?(https?://t\.me/\S+)?", "", text, flags=re.IGNORECASE)
