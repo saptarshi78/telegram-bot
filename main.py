@@ -10,8 +10,7 @@ bot = telebot.TeleBot('8166571880:AAH59oE0qwi00nIKJaau33bPxmMlV_4eEZY')
 
 # Multiple Noirsane Shortener API Keys
 API_KEYS = [
-    'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261',
-    '3258415006603e646926420840c3469a68c377a1'
+    'abf109fe4a9cc3c7b4d3b266d4c5e5a68d063261'
 ]
 
 # Custom header and footer
@@ -24,7 +23,7 @@ def clean_text(text):
         return ""
     text = re.sub(r'https?://t\.me/\S+', '', text)
     text = re.sub(r'(?i)join\s+this\s+channel.*', '', text)
-    text = re.sub(r'(?i)Join.*👇.*', '', text)
+    text = re.sub(r'(?i)Join.👇.', '', text)
     text = re.sub(r'@\w+', '', text)
     text = re.sub(r'\n{2,}', '\n', text)
     return text.strip()
@@ -41,7 +40,7 @@ def shorten_with_noirsane(url):
                     'url': url,
                     'format': 'text'
                 },
-                timeout=10
+                timeout=10000
             )
             if response.status_code == 200 and response.text.startswith("http"):
                 print(f"✅ Shortened using key {api_key[:6]}: {response.text.strip()}")
@@ -51,7 +50,7 @@ def shorten_with_noirsane(url):
         except requests.exceptions.RequestException as e:
             print(f"⛔ Error with key {api_key[:6]}: {e}")
         time.sleep(0.2)  # slight delay before trying next key
-    print("‼️ All keys failed. Using original URL.")
+    print("‼ All keys failed. Using original URL.")
     return url
 
 # Extract and shorten all valid URLs in a message
@@ -82,7 +81,7 @@ def send_welcome(message):
         "🌟 Welcome to the Premium Link Shortener Bot! 🌐\n\n"
         "📎 Just send any text, photo, or video with a link — I’ll shorten it instantly.\n"
         "💰 Login to earn: https://shortner.noirsane.com\n\n"
-        "🚀 Crafted with ❤️‍🔥"
+        "🚀 Crafted with ❤‍🔥"
     )
 
 @bot.message_handler(content_types=['text'])
